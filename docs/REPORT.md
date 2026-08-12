@@ -10,6 +10,20 @@ The audit identified a significant documentation/SDK drift: the Quickstart sampl
 
 The final invocation reached contract execution and failed deterministically because the reference travel contract’s `duffel_api_key` secret was not populated. This is an expected environment prerequisite, not evidence of a platform outage. No mainnet operation, payment, real booking, wallet transfer, or bounty submission was attempted.
 
+## Screenshot evidence
+
+The repository now includes a four-image evidence set and a contact sheet under `screenshots/`. These are credential-safe evidence cards generated from the verified sanitized execution logs, not fabricated browser screenshots. Each card names its source log and shows only the relevant success or blocker state.
+
+| Screenshot | Evidence shown | Source |
+| --- | --- | --- |
+| `01_quickstart_authenticated.png` | Handshake, authenticated DID match, and test-credit balance | `logs/quickstart_retry_sanitized.log` |
+| `02_contract_build.png` | Rust compilation for `wasm32-wasip2` and optimized completion | `logs/contract_build.log` |
+| `03_contract_registered.png` | TenantClient readiness, canonical contract name, and contract ID 648 | `logs/registration_retry_sanitized.log` |
+| `04_invocation_blocker.png` | Runtime reached the TEE contract and stopped at the missing Duffel secret | Verified invocation result |
+| `00_evidence_contact_sheet.png` | Combined four-panel overview for the bounty form | Generated from the four cards |
+
+These cards are intentionally labeled “sanitized evidence screenshot” so a reviewer can distinguish them from screenshots captured directly from the Terminal3 dashboard. The original browser/dashboard screenshots were not available in the workspace, and none has been invented.
+
 ## Requirement status
 
 | Bounty requirement | Status | Evidence |
