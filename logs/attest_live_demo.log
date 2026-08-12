@@ -1,0 +1,26 @@
+
+=== Step 1: Authenticate ===
+Handshake complete
+Connected as: did:t3n:f2458610f88263ea28859cd1f2dee3405514bbf9
+
+=== Step 2: TenantClient ===
+TenantClient ready
+
+=== Step 3: Register Contract ===
+Registered z:f2458610f88263ea28859cd1f2dee3405514bbf9:agent-attest as contract id 650
+
+=== Step 4: Create attestations KV map ===
+attestations map created
+
+=== Step 5: Register Agent Attestation ===
+Register result: {"status":"registered","key":"did:t3n:testagent001"}
+
+=== Step 6: Verify Agent Attestation ===
+Verify result: {"agent_did":"did:t3n:testagent001","capability":"solana_swap_verification","issued_at":1786569802386,"signature":"0xdeadbeef_test_signature"}
+
+=== Step 7: List All Attestations ===
+List result: {"attestations":[],"count":0}
+
+=== END-TO-END DEMO COMPLETE ===
+Contract: z:f2458610f88263ea28859cd1f2dee3405514bbf9:agent-attest v0.1.0
+Attestation registered and verified for: did:t3n:testagent001

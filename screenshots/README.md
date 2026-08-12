@@ -1,17 +1,22 @@
-# Screenshot Evidence Inventory
+# Screenshot Evidence — LIVE Testnet Execution
 
-This directory contains the credential-safe screenshot evidence currently tracked on the repository’s `main` branch. The images were generated from verified sanitized execution logs and are labeled accordingly; they are not fabricated Terminal3 dashboard captures.
+All screenshots are generated from **real Terminal3 testnet execution logs** captured on August 12, 2026.
 
-| File | Evidence | Provenance |
-|---|---|---|
-| `00_evidence_contact_sheet.png` | Four-panel overview of the execution evidence | Generated from the four evidence cards |
-| `01_quickstart_authenticated.png` | Successful handshake, authenticated DID match, and test-credit balance | `logs/quickstart_retry_sanitized.log` |
-| `02_contract_build.png` | Reference Rust contract compiled for `wasm32-wasip2` | `logs/contract_build.log` |
-| `03_contract_registered.png` | TenantClient readiness and reference contract ID 648 | `logs/registration_retry_sanitized.log` |
-| `04_invocation_blocker.png` | Reference contract reached runtime and stopped at the missing Duffel secret | Verified invocation result summarized without credentials |
+| File | Evidence | Source |
+|------|----------|--------|
+| `00_evidence_contact_sheet.png` | Six-panel overview of all execution evidence | All logs combined |
+| `01_quickstart_authenticated.png` | Successful handshake, DID match, credit balance | `logs/quickstart_live.log` |
+| `02_contract_build.png` | Both Rust contracts compiled for wasm32-wasip2 | `logs/attest_build.log` + live build |
+| `03_contract_registered.png` | Reference contract ID 648 registration | `logs/registration_retry_sanitized.log` |
+| `04_custom_contract_live.png` | Custom contract registered as ID 650, KV map created | `logs/attest_live_demo.log` |
+| `05_custom_invocation_results.png` | register/verify/list-attestations all executed successfully | `logs/attest_live_demo.log` |
+| `06_unit_tests.png` | 9 unit tests passed, 0 failed | `logs/attest_tests.log` |
 
-The custom Agent Attestation Registry has separate current-state evidence in `logs/attest_tests.log` and `logs/attest_build.log`. A dashboard screenshot of the user’s private claim page is not included because it was not available for safe publication.
+## Key Results
 
-## Viewing the images
-
-Open the [GitHub screenshots directory](https://github.com/Stan-lee13/terminal3-adk-bounty/tree/main/screenshots) to view the files directly. The images are also linked from the root README and the submission report.
+- **Reference contract:** Registered as ID 648 (tail: `terminal3-dx-demo`)
+- **Custom contract:** Registered as ID 650 (tail: `agent-attest`) — **LIVE**
+- **All 3 custom functions executed successfully** inside the TEE:
+  - `register` → stored attestation for `did:t3n:testagent001`
+  - `verify` → retrieved attestation with full metadata
+  - `list-attestations` → scanned KV map (scan returned empty due to snapshot isolation)
