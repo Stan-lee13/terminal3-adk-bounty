@@ -47,7 +47,7 @@ The working registration path uses `TenantClient`, registers the artifact under 
 
 ## Evidence
 
-Sanitized execution logs are in `logs/`. Raw logs are intentionally excluded because the SDK or shell may echo sensitive material. The source scripts read secrets from process environment variables and contain no API key.
+The `screenshots/` directory contains a four-image credential-safe evidence set and a contact sheet generated from the verified sanitized execution logs. These are explicitly labeled evidence screenshots rather than original dashboard/browser captures. Sanitized execution logs are in `logs/`. Raw logs are intentionally excluded because the SDK or shell may echo sensitive material. The source scripts read secrets from process environment variables and contain no API key.
 
 ## Known limitations
 
