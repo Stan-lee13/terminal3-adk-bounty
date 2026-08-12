@@ -1,0 +1,10 @@
+Connected as: did:t3n:f2458610f88263ea28859cd1f2dee3405514bbf9
+
+=== Register Agent 2 ===
+Register result: {"status":"registered","key":"did:t3n:graphite-verifier-01"}
+
+=== Verify Agent 1 (testagent001) ===
+Verify result: {"agent_did":"did:t3n:testagent001","capability":"solana_swap_verification","issued_at":1786569802386,"signature":"0xdeadbeef_test_signature"}
+
+=== Verify Agent 2 (graphite-verifier-01) ===
+Verify result: {"agent_did":"did:t3n:graphite-verifier-01","capability":"solana_transaction_verification","issued_at":1786570019199,"signature":"0xgraphite_sig_abc123"}

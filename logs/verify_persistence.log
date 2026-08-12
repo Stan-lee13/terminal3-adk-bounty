@@ -1,0 +1,8 @@
+Connected as: did:t3n:f2458610f88263ea28859cd1f2dee3405514bbf9
+TenantClient ready
+
+=== List Attestations (fresh tx) ===
+List result: {"attestations":[],"count":0}
+
+=== Verify Attestation ===
+Verify result: {"agent_did":"did:t3n:testagent001","capability":"solana_swap_verification","issued_at":1786569802386,"signature":"0xdeadbeef_test_signature"}
