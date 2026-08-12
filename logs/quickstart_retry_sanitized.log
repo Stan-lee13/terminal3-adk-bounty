@@ -1,0 +1,5 @@
+Starting handshake...
+Handshake complete
+Connected as: did:t3n:f2458610f88263ea28859cd1f2dee3405514bbf9
+Expected DID from claim: did:t3n:f2458610f88263ea28859cd1f2dee3405514bbf9
+Usage response: {"balance":{"available":20000000000,"reserved":0,"last_settled_seq_no":0,"version":1,"credit_exhausted":false,"storage_deposit":0},"entries":[]}

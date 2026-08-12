@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+node_modules/
+target/
+*.wasm
+artifacts/secrets/
+logs/private/
+
+logs/*_raw.log
+logs/quickstart_raw.log
