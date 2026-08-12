@@ -22,3 +22,9 @@ The first successful authenticated call required installing the SDK, adding the 
 ## Recommendations
 
 The documentation should be version-pinned or generated from the SDK’s public types. A preflight command should validate trust-anchor configuration, tenant namespace, Rust target, WASM artifact, map ACL, and required secret names before charging a contract execution. The walkthrough should also distinguish tenant identity, agent identity, and user authorization in a single diagram.
+
+## Current custom-contract validation
+
+The latest repository state includes a custom Agent Attestation Registry under `contracts/z-tenant-attest/`. Its WIT interface now exports `list-attestations` rather than bare `list`, because `list` is reserved by the current WIT parser. The Rust implementation and `app/attest-demo.ts` use the corrected name consistently.
+
+The current validation run passed **9 unit tests** and produced a successful `wasm32-wasip2` release build of approximately **145 KB**. The build emits one non-blocking dead-code warning for `VerifyResp`. These results are recorded in `logs/attest_tests.log` and `logs/attest_build.log`. Live registration and invocation of the custom artifact remain prepared but not evidenced.

@@ -1,0 +1,17 @@
+[1m[92m   Compiling[0m z-tenant-attest v0.1.0 (/home/ubuntu/terminal3-adk-bounty/contracts/z-tenant-attest)
+[1m[92m    Finished[0m `test` profile [unoptimized + debuginfo] target(s) in 0.24s
+[1m[92m     Running[0m unittests src/lib.rs (target/debug/deps/z_tenant_attest-f1a64ef349164fa6)
+
+running 9 tests
+test registry::tests::register_rejects_bad_json ... ok
+test registry::tests::register_rejects_empty_did ... ok
+test registry::tests::validate_capability_rejects_too_long ... ok
+test registry::tests::validate_capability_rejects_empty ... ok
+test registry::tests::register_rejects_non_did ... ok
+test registry::tests::validate_did_rejects_too_long ... ok
+test registry::tests::verify_rejects_empty_did ... ok
+test tests::contract_version_is_semver ... ok
+test registry::tests::register_rejects_empty_signature ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -42,5 +42,5 @@ interface contracts {
     /// List all registered agent attestations (up to 50).
     /// Input  (JSON): {}
     /// Output (JSON): { attestations: [ {...}, ... ] }
-    list: func(req: generic-input) -> result<list<u8>, string>;
+    list-attestations: func(req: generic-input) -> result<list<u8>, string>;
 }

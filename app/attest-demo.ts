@@ -131,7 +131,7 @@ try {
   console.log("\n=== Step 7: List All Attestations ===");
   const listResult = await tenant.contracts.execute(CONTRACT_TAIL, {
     version: CONTRACT_VERSION,
-    functionName: "list",
+    functionName: "list-attestations",
     input: {},
   });
   console.log("List result:", JSON.stringify(listResult));

@@ -1,21 +1,17 @@
-# Screenshots
+# Screenshot Evidence Inventory
 
-Place the following screenshots here before submission:
+This directory contains the credential-safe screenshot evidence currently tracked on the repository’s `main` branch. The images were generated from verified sanitized execution logs and are labeled accordingly; they are not fabricated Terminal3 dashboard captures.
 
-| File | Description |
-|------|-------------|
-| 01-claim-page.png | Terminal3 claim page showing DID and API key |
-| 02-quickstart-output.png | Terminal output of successful Quickstart (handshake + DID + usage) |
-| 03-contract-build.png | Rust contract compilation output (cargo build) |
-| 04-registration-result.png | Contract registration success (contract ID 648) |
-| 05-attest-demo.png | Agent Attestation Registry end-to-end demo output |
-| 06-usage-credits.png | Terminal3 portal showing credits balance |
+| File | Evidence | Provenance |
+|---|---|---|
+| `00_evidence_contact_sheet.png` | Four-panel overview of the execution evidence | Generated from the four evidence cards |
+| `01_quickstart_authenticated.png` | Successful handshake, authenticated DID match, and test-credit balance | `logs/quickstart_retry_sanitized.log` |
+| `02_contract_build.png` | Reference Rust contract compiled for `wasm32-wasip2` | `logs/contract_build.log` |
+| `03_contract_registered.png` | TenantClient readiness and reference contract ID 648 | `logs/registration_retry_sanitized.log` |
+| `04_invocation_blocker.png` | Reference contract reached runtime and stopped at the missing Duffel secret | Verified invocation result summarized without credentials |
 
-## How to capture
+The custom Agent Attestation Registry has separate current-state evidence in `logs/attest_tests.log` and `logs/attest_build.log`. A dashboard screenshot of the user’s private claim page is not included because it was not available for safe publication.
 
-1. Navigate to https://www.terminal3.io/claim-page — capture the claim page
-2. Run `npx tsx quickstart.ts` — capture the terminal output
-3. Run `cargo build --target wasm32-wasip2 --release` — capture the build
-4. Registration output appears in the quickstart terminal — capture it
-5. Run `npx tsx attest-demo.ts` — capture the full demo output
-6. Check the Terminal3 portal/dashboard for credits balance
+## Viewing the images
+
+Open the [GitHub screenshots directory](https://github.com/Stan-lee13/terminal3-adk-bounty/tree/main/screenshots) to view the files directly. The images are also linked from the root README and the submission report.

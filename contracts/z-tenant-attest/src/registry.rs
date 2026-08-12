@@ -191,7 +191,7 @@ pub fn list(_input: &[u8]) -> Result<Vec<u8>, String> {
         let map = map_name()?;
 
         // Scan the attestations map. We use a limit of 50 to keep the response small.
-        let scan_result = kv_store::scan(&map, None, None, 50)
+        let scan_result = kv_store::scan(&map, &[], &[], 50)
             .map_err(|e| format!("list: kv scan failed: {e}"))?;
 
         let mut attestations: Vec<Attestation> = Vec::new();
@@ -208,9 +208,10 @@ pub fn list(_input: &[u8]) -> Result<Vec<u8>, String> {
 
         let _ = logging::info(&format!("list: returned {} attestations", attestations.len()));
 
+        let count = attestations.len();
         let resp = ListResp {
             attestations,
-            count: attestations.len(),
+            count,
         };
         serde_json::to_vec(&resp).map_err(|e| format!("list: response serialization: {e}"))
     }

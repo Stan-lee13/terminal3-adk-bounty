@@ -1,191 +1,116 @@
-# Terminal3 ADK Walkthrough — Execution Record
+# Terminal3 ADK Walkthrough — Current Execution Record
 
-## Overview
+## Scope and status model
 
-This document records the step-by-step execution of the Terminal3 ADK walkthrough, from environment setup through contract deployment and invocation. Each step is marked as completed, partially completed, or blocked.
+This document distinguishes actions verified against the Terminal3 testnet from local source validation and prepared-but-not-yet-executed live operations. It is synchronized with the current repository tree and commit history.
 
-## Step 1: Claim API Key & Credits
+## Step 1: Claim API key and credits
 
-**Status: ✅ Completed (by user)**
+**Status: Completed by the user.** The user obtained a Terminal3 API key and a DID in the `did:t3n:...` format. The credential is not stored in the repository. Because it was later pasted into chat, it should be rotated or regenerated before reuse.
 
-- Navigated to https://www.terminal3.io/claim-page
-- Signed in with work email
-- Received API key (shown once) and test credits
-- DID was automatically generated in the format `did:t3n:...`
+## Step 2: Run the authenticated Quickstart
 
-**Documentation accuracy:** The claim page worked as documented. The key is shown only once — this is clearly stated and accurate.
-
-## Step 2: Quickstart — First Authenticated Call
-
-**Status: ✅ Completed**
+**Status: Completed.** The working script is `app/quickstart.ts`.
 
 ```bash
-mkdir my-t3n-app && cd my-t3n-app
-npm init -y
-npm pkg set type=module
-npm install @terminal3/t3n-sdk tsx
-export T3N_API_KEY="<key>"
+cd app
+npm install
+export T3N_API_KEY="<your-key>"
+npx tsx quickstart.ts
 ```
 
-**Bug found:** The official Quickstart code constructs `T3nClient` without `trustAnchor`, but SDK 4.36.0 requires it. See BUG-001 in BUGS.md.
-
-**Working fix applied:** Added `fetchTrustedManifest("testnet")` and passed `trustAnchor` to the constructor:
+The installed SDK is `@terminal3/t3n-sdk` 4.36.0. The public Quickstart required a correction: the client must receive a signed trust manifest.
 
 ```typescript
 const trustAnchor = await fetchTrustedManifest("testnet");
-const t3n = new T3nClient({
-  trustAnchor,
-  wasmComponent,
-  handlers: { EthSign: metamask_sign(address, undefined, apiKey) },
-});
+const t3n = new T3nClient({ trustAnchor, wasmComponent, handlers });
 ```
 
-**Result:** Handshake completed, authentication returned a valid `did:t3n:...` DID, and `getUsage()` reported 20,000,000,000 test credits on first run.
+The handshake completed, the authenticated DID matched the claimed DID, and the initial usage response reported 20,000,000,000 available test-credit units. Evidence is in `logs/quickstart_retry_sanitized.log` and `screenshots/01_quickstart_authenticated.png`.
 
-**Documentation accuracy:** The Quickstart is missing the trustAnchor step. The SDK README documents the signed trust-manifest path, but the canonical Quickstart page does not.
+## Step 3: Set up the development environment
 
-## Step 3: Set Up Dev Environment
+**Status: Completed.** Rust and the `wasm32-wasip2` target were installed. The setup guide contained a second SDK drift: `tenant.me()` is not present on the current client; the working call is `tenant.tenant.me()`.
 
-**Status: ✅ Completed**
+## Step 4: Build the reference contract
 
-```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source "$HOME/.cargo/env"
-rustup target add wasm32-wasip2
-cargo install wasm-tools
-```
-
-**Bug found:** The official setup guide instructs `await tenant.me()`, but SDK 4.36.0 exposes the check at `tenant.tenant.me()`. See BUG-002 in BUGS.md.
-
-**Working fix applied:**
-```typescript
-await tenant.tenant.me(); // not tenant.me()
-```
-
-**Result:** TenantClient constructed and verified successfully.
-
-**Documentation accuracy:** The `tenant.me()` namespace is outdated in the current SDK.
-
-## Step 4: Write the TEE Contract
-
-**Status: ✅ Completed (reference contract) + ✅ Custom contract**
-
-### Reference contract (z-tenant-flight)
-Cloned from https://github.com/Terminal-3/z-tenant-flight.git as documented. The flight booking contract uses Duffel API for search and booking.
-
-### Custom contract (z-tenant-attest)
-Wrote a custom Agent Attestation Registry contract that uses only KV-store — no external HTTP API needed. This demonstrates understanding of the platform beyond the tutorial.
-
-**Custom contract structure:**
-```
-contracts/z-tenant-attest/
-├── src/
-│   ├── lib.rs         — wit-bindgen entry point + Guest impl
-│   └── registry.rs    — register/verify/list attestation logic
-├── wit/
-│   ├── world.wit      — exports contracts interface, imports kv-store + logging
-│   └── deps/          — vendored host interface packages
-└── Cargo.toml
-```
-
-## Step 5: Build the TEE Contract
-
-**Status: ✅ Completed**
+**Status: Completed.** The reference `z-tenant-flight` contract was built with:
 
 ```bash
 cd contracts/z-tenant-flight
-rustup target add wasm32-wasip2
 cargo build --target wasm32-wasip2 --release
-ls -lh target/wasm32-wasip2/release/*.wasm
 ```
 
-**Result:** `z_tenant_flight.wasm` — 194 KB. Build succeeded on first attempt.
+The optimized artifact was approximately 194 KB. Evidence is in `logs/contract_build.log` and `screenshots/02_contract_build.png`.
+
+## Step 5: Register the reference contract
+
+**Status: Completed on the testnet.** `app/quickstart.ts` registered the reference artifact with tail `terminal3-dx-demo`, version `0.1.0`, and returned contract ID **648**. The canonical name was:
+
+```text
+z:f2458610f88263ea28859cd1f2dee3405514bbf9:terminal3-dx-demo
+```
+
+Evidence is in `logs/registration_retry_sanitized.log` and `screenshots/03_contract_registered.png`.
+
+## Step 6: Configure the reference contract’s secrets map
+
+**Status: Map completed; secret intentionally not populated.** `app/setup-secrets-map.ts` created a private `secrets` map with contract ID 648 as the only reader and writer. The separate `duffel_api_key` was not supplied, so no third-party credential was written.
+
+## Step 7: Invoke the reference contract
+
+**Status: Partially completed.** `app/invoke.ts` reached the registered TEE contract. Before the map existed, the call failed with access denied. After the correct ACL was created, the call progressed to the expected missing-secret error:
+
+```text
+duffel_api_key not found in z:<tid>:secrets
+```
+
+No external booking, payment, or personal-data flow was attempted. Evidence is in `screenshots/04_invocation_blocker.png`.
+
+## Step 8: Implement the custom Agent Attestation Registry
+
+**Status: Source implementation completed; live deployment not yet evidenced.** The custom contract is under `contracts/z-tenant-attest/` and uses only the tenant context, logging, and KV-store host interfaces. It exposes:
+
+| Function | Purpose |
+|---|---|
+| `register` | Store a DID, capability, issue time, and signature |
+| `verify` | Retrieve an attestation by DID |
+| `list-attestations` | Scan and return up to 50 stored attestations |
+
+The WIT export is intentionally named `list-attestations`; the bare WIT identifier `list` is reserved by the current parser. `app/attest-demo.ts` matches this export name.
+
+## Step 9: Test and build the custom contract
+
+**Status: Completed locally.** The current repository was validated with:
 
 ```bash
-wasm-tools component wit target/wasm32-wasip2/release/z_tenant_flight.wasm
+cd contracts/z-tenant-attest
+cargo test --all-targets
+cargo build --target wasm32-wasip2 --release
 ```
 
-The WIT output confirmed the expected interface exports and host imports.
+The result was **9 tests passed, 0 failed**, followed by a successful 145 KB release WASM build. The build emits one non-blocking dead-code warning for the unused `VerifyResp` type. Logs are in `logs/attest_tests.log` and `logs/attest_build.log`.
 
-## Step 6: Register the TEE Contract
+## Step 10: Custom live demo boundary
 
-**Status: ✅ Completed**
+**Status: Prepared, not yet executed on the live tenant.** `app/attest-demo.ts` registers the custom artifact, creates the private `attestations` map, and invokes `register`, `verify`, and `list-attestations`. The current evidence proves source correctness, unit tests, and release compilation; it does not claim that this custom artifact has already been registered or invoked on the live tenant.
 
-Registration code appended to `quickstart.ts`:
+## Screenshot evidence
 
-```typescript
-const wasmBytes = await readFile(WASM_PATH);
-const result = await tenant.contracts.register({
-  tail: "terminal3-dx-demo",
-  version: "0.1.0",
-  wasm: wasmBytes,
-});
-console.log(`Registered as contract id ${result.contract_id}`);
-```
-
-**Result:** Contract registered successfully as **contract ID 648** with tail `terminal3-dx-demo`.
-
-## Step 7: Create KV Maps & Seed Secrets
-
-**Status: ✅ Completed (map creation) / ⚠️ Partial (secret seeding)**
-
-The `secrets` map was created with contract 648 as reader/writer:
-```typescript
-await tenant.maps.create({
-  tail: "secrets",
-  visibility: "private",
-  writers: { only: [648] },
-  readers: { only: [648] },
-});
-```
-
-**Observation:** Before the map existed, invocation failed with `access denied`. After creation, invocation progressed to the more specific `duffel_api_key not found in z:<tid>:secrets` error. The documentation should make this prerequisite more prominent.
-
-The Duffel API key was not seeded (no Duffel test account). This is a documentation prerequisite, not a platform bug.
-
-## Step 8: Invoke the TEE Contract
-
-**Status: ⚠️ Partial (reference contract) / ✅ Designed (custom contract)**
-
-### Reference contract (z-tenant-flight)
-Invocation reached the contract but failed at runtime because `duffel_api_key` was not seeded. This is expected — the contract correctly reads from the secrets map and fails safely.
-
-### Custom contract (z-tenant-attest)
-Designed to succeed without external APIs. The `attest-demo.ts` script demonstrates:
-1. Register an agent attestation (DID → capability + signature)
-2. Verify/retrieve the attestation by DID
-3. List all registered attestations
-
-This contract uses only the KV-store host interface — no HTTP, no external API keys.
-
-## Step 9: Test the TEE Contract
-
-**Status: ✅ Completed (unit tests)**
-
-The reference contract includes unit tests for input validation:
-- `book_offer_rejects_inline_pii` — PII smuggling rejected at parse time
-- `book_offer_rejects_non_json` — invalid JSON rejected
-
-The custom contract includes 7 unit tests:
-- Empty DID rejection
-- Non-DID format rejection
-- Empty signature rejection
-- Bad JSON rejection
-- Capability validation (empty + too long)
-- DID length validation
+The tracked files are listed in `screenshots/README.md`. The five PNGs are credential-safe evidence cards generated from sanitized logs. They are not private Terminal3 dashboard captures.
 
 ## Summary
 
-| Step | Status | Notes |
-|------|--------|-------|
-| Claim API key | ✅ | Self-serve, instant |
-| Quickstart | ✅ | Required trustAnchor fix |
-| Dev env setup | ✅ | Required tenant.tenant.me() fix |
-| Write contract | ✅ | Reference + custom contract |
-| Build contract | ✅ | 194 KB WASM, clean build |
-| Register contract | ✅ | Contract ID 648 |
-| Create KV maps | ✅ | Secrets map with correct ACL |
-| Seed secrets | ⚠️ | Duffel key not available |
-| Invoke contract | ⚠️ | Blocked by missing Duffel key |
-| Test contract | ✅ | Unit tests pass |
-| Custom use case | ✅ | Agent Attestation Registry (KV-only) |
+| Step | Current status | Evidence |
+|---|---|---|
+| Claim credential | Completed by user | Authenticated DID in sanitized logs |
+| Quickstart | Completed | Quickstart log and screenshot |
+| Reference build | Completed | Build log and screenshot |
+| Reference registration | Completed; contract ID 648 | Registration log and screenshot |
+| Reference secrets map | Completed | `setup-secrets-map.ts` execution |
+| Reference invocation | Partial; missing Duffel key | Invocation screenshot |
+| Custom source implementation | Completed | `contracts/z-tenant-attest/` |
+| Custom unit tests | Completed; 9 passed | `logs/attest_tests.log` |
+| Custom WASI build | Completed; 145 KB | `logs/attest_build.log` |
+| Custom live deployment | Not yet evidenced | `app/attest-demo.ts` prepared |
+| DX audit | Completed | `docs/BUGS.md`, `docs/DX_AUDIT.md` |

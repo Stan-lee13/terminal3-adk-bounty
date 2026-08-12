@@ -10,7 +10,7 @@ Terminal3's core value proposition is verifiable identity and programmable autho
 
 1. **Register:** An agent registers its DID with a capability claim (e.g., "solana_swap_verification") and a cryptographic signature
 2. **Verify:** Any other agent or tenant can look up the attestation by DID to verify what the agent claims it can do
-3. **List:** Enumerate all registered agents and their capabilities
+3. **List attestations:** Enumerate up to 50 registered agents and their capabilities through the `list-attestations` export
 
 ## How it uses Terminal3
 
@@ -43,7 +43,7 @@ Attestation records (DID → capability + signature)
 interface contracts {
     register: func(req: generic-input) -> result<list<u8>, string>;
     verify:   func(req: generic-input) -> result<list<u8>, string>;
-    list:     func(req: generic-input) -> result<list<u8>, string>;
+    list-attestations: func(req: generic-input) -> result<list<u8>, string>;
 }
 ```
 
@@ -55,16 +55,18 @@ interface contracts {
 **Input:** `{ agent_did: string }`
 **Output:** `{ agent_did: string, capability: string, issued_at: u64, signature: string }`
 
-### list
+### list-attestations
 **Input:** `{}`
 **Output:** `{ attestations: [...], count: number }`
+
+The export uses `list-attestations` because bare `list` is reserved by the current WIT parser.
 
 ## Why this is better than the reference contract
 
 The reference flight-booking contract (z-tenant-flight) requires a Duffel API key to do anything meaningful. Without it, invocation fails. This creates a gap in the developer experience: a new developer who follows the walkthrough end-to-end cannot actually invoke a contract without first obtaining a third-party API key.
 
 The Agent Attestation Registry uses **only** the KV-store host interface — no HTTP, no external API keys. This means:
-- A developer can run the full end-to-end flow immediately after claiming test credits
+- A developer can run the full end-to-end flow after building and registering the custom artifact; the current repository has verified the build and tests, while live custom deployment remains a prepared next step
 - The contract demonstrates the same core T3N capabilities (TEE execution, KV storage, tenant isolation)
 - The use case is directly relevant to Terminal3's mission (agent identity)
 
@@ -82,13 +84,13 @@ export T3N_API_KEY="<your-key>"
 npx tsx attest-demo.ts
 ```
 
-The demo script:
+The demo script is prepared for live execution but is not represented as completed live evidence in this repository. It:
 1. Authenticates with the T3N testnet
 2. Registers the contract
 3. Creates the attestations KV map
 4. Registers a test attestation
 5. Verifies the attestation
-6. Lists all attestations
+6. Lists all attestations through `list-attestations`
 
 ## Connection to Graphite
 

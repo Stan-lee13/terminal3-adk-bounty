@@ -1,231 +1,39 @@
-# Terminal3 ADK Testnet — Developer Experience Audit & Integration Report
+# Terminal3 ADK Testnet — Developer Experience Audit and Agent Attestation Registry
 
-> A reproducible Terminal3 ADK testnet execution: authenticated Quickstart, Rust→WASM contract build, tenant-local registration, KV-map setup, and a custom **Agent Attestation Registry** contract that runs end-to-end without external API dependencies.
+> A reproducible Terminal3 ADK testnet project covering authenticated Quickstart execution, Rust-to-WASM contract compilation, tenant-local registration, KV-map access control, and a custom KV-only Agent Attestation Registry.
 
-## What This Demonstrates
+## Current repository state
 
-This submission goes beyond following the tutorial. It:
+The repository contains two contracts. The reference `z-tenant-flight` contract was built and registered on the Terminal3 testnet as `terminal3-dx-demo`, contract ID **648**. The custom `z-tenant-attest` contract is now WIT-compatible, passes **9 unit tests**, and builds successfully to a 145 KB WASI Preview 2 component. Its end-to-end registration and invocation script is included, but that custom contract has not been registered on the live tenant in the current evidence set.
 
-1. **Completed the full authenticated Quickstart** on the Terminal3 testnet
-2. **Compiled the reference Rust contract** to a WASI Preview 2 component (194 KB)
-3. **Registered the contract** under the authenticated tenant (contract ID 648)
-4. **Created and configured KV maps** with correct ACLs
-5. **Built a custom contract** (Agent Attestation Registry) that uses only KV-store — no external API key needed
-6. **Documented 2 confirmed bugs** and 2 observations about documentation/SDK drift
-7. **Performed a systematic DX audit** of the entire developer workflow
+| Area | Current verified state |
+|---|---|
+| Quickstart authentication | Passed with signed trust-manifest configuration |
+| Reference contract build | Passed; `z_tenant_flight.wasm`, approximately 194 KB |
+| Reference registration | Passed; contract ID 648, tail `terminal3-dx-demo` |
+| Reference invocation | Reached runtime; blocked by missing `duffel_api_key` |
+| Custom contract unit tests | Passed; 9 tests |
+| Custom contract WASI build | Passed; `z_tenant_attest.wasm`, approximately 145 KB |
+| Custom contract live deployment | Script prepared; live registration/invocation not yet evidenced |
+| Screenshots | Five credential-safe PNG assets tracked under `screenshots/` |
+| DX audit | Two confirmed documentation/SDK mismatches and two observations |
 
-## Terminal3 Components Used
+## What the project demonstrates
 
-| Component | Usage |
-|-----------|-------|
-| T3nClient | Authenticated session, handshake, DID resolution |
-| TenantClient | Contract registration, KV map management |
-| KV-store (host interface) | Attestation storage in private z-namespace |
-| Logging (host interface) | Audit trail inside TEE |
-| WASM component model | Rust → wasm32-wasip2 → T3N registration |
-| Tenant context | Dynamic z-namespace map name construction |
+The project uses `T3nClient` for signed authentication, `TenantClient` for tenant control-plane operations, Rust and WIT for WASI Preview 2 components, private KV maps for contract state, and logging inside the TEE. The custom registry stores agent attestations keyed by DID and exposes the functions `register`, `verify`, and `list-attestations`. It does not require Duffel or another external API key.
 
-## Architecture
+## Repository structure
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  Developer Machine                                          │
-│  ├── app/quickstart.ts     ← T3nClient auth + TenantClient   │
-│  ├── app/attest-demo.ts    ← Custom contract end-to-end demo │
-│  └── app/setup-secrets-map.ts  ← KV map ACL provisioning     │
-│                                                             │
-│  contracts/z-tenant-flight/  ← Reference contract (Duffel)    │
-│  contracts/z-tenant-attest/  ← Custom contract (KV-only)      │
-└─────────────────────────────────────────────────────────────┘
-         │
-         │ @terminal3/t3n-sdk (WebSocket + WASM)
-         ▼
-┌─────────────────────────────────────────────────────────────┐
-│  Terminal3 Testnet (T3N)                                    │
-│  ├── TEE Node                                               │
-│  │   ├── Contract execution (WASM in enclave)              │
-│  │   ├── KV-store (z:<tid>:attestations)                    │
-│  │   └── Logging (audit trail)                              │
-│  └── Tenant registry (contract ID 648)                      │
-└─────────────────────────────────────────────────────────────┘
-```
-
-## Prerequisites
-
-| Requirement | Version |
-|-------------|---------|
-| Node.js | v22.13.0+ |
-| npm | 10.9.2+ |
-| Rust | 1.85+ (rustup) |
-| WASM target | wasm32-wasip2 |
-| Terminal3 SDK | @terminal3/t3n-sdk ^4.36.0 |
-| Terminal3 API key | From [claim page](https://www.terminal3.io/claim-page) |
-
-## Installation
-
-```bash
-git clone https://github.com/Stan-lee13/terminal3-adk-bounty.git
-cd terminal3-adk-bounty
-
-# Install SDK dependencies
-cd app
-npm install
-
-# Install Rust + WASM target (if not already installed)
-rustup target add wasm32-wasip2
-```
-
-## Environment Variables
-
-```bash
-# Required: your Terminal3 API key from the claim page
-export T3N_API_KEY="<your-key>"
-```
-
-Never commit `.env` files. See `.env.example` for the template.
-
-## Running the Example
-
-### Quickstart (authenticated connection)
-
-```bash
-cd app
-export T3N_API_KEY="<your-key>"
-npx tsx quickstart.ts
-```
-
-Expected output:
-```
-Starting handshake...
-Handshake complete
-Connected as: did:t3n:...
-TenantClient ready.
-Registered z:...:terminal3-dx-demo as contract id 648
-```
-
-### Custom contract (Agent Attestation Registry)
-
-First, build the custom contract:
-```bash
-cd contracts/z-tenant-attest
-cargo build --target wasm32-wasip2 --release
-ls -lh target/wasm32-wasip2/release/*.wasm
-```
-
-Then run the end-to-end demo:
-```bash
-cd ../../app
-export T3N_API_KEY="<your-key>"
-npx tsx attest-demo.ts
-```
-
-## Contract Deployment
-
-### Reference contract (z-tenant-flight)
-
-```bash
-cd contracts/z-tenant-flight
-rustup target add wasm32-wasip2
-cargo build --target wasm32-wasip2 --release
-# Output: target/wasm32-wasip2/release/z_tenant_flight.wasm (194 KB)
-```
-
-Registration is handled programmatically in `quickstart.ts`.
-
-### Custom contract (z-tenant-attest)
-
-```bash
-cd contracts/z-tenant-attest
-rustup target add wasm32-wasip2
-cargo build --target wasm32-wasip2 --release
-# Output: target/wasm32-wasip2/release/z_tenant_attest.wasm
-```
-
-Registration is handled programmatically in `attest-demo.ts`.
-
-## Test Results
-
-| Test | Result |
-|------|--------|
-| Quickstart authentication | ✅ Passed |
-| Contract compilation | ✅ 194 KB WASM, clean build |
-| Contract registration | ✅ Contract ID 648 |
-| KV map creation | ✅ Private map with correct ACL |
-| Reference contract invocation | ⚠️ Blocked by missing Duffel API key |
-| Custom contract unit tests | ✅ 9 tests pass (input validation) |
-| DX audit | ✅ 2 confirmed bugs, 2 observations |
-
-## Known Issues
-
-### Confirmed Bugs
-
-1. **BUG-001: Quickstart omits mandatory `trustAnchor`** — The official Quickstart code does not include `fetchTrustedManifest()`, but SDK 4.36.0 requires it. [Details](docs/BUGS.md#bug-001)
-2. **BUG-002: Setup guide uses obsolete `tenant.me()` namespace** — The docs say `tenant.me()` but SDK 4.36.0 exposes it at `tenant.tenant.me()`. [Details](docs/BUGS.md#bug-002)
-
-### Observations
-
-3. **OBS-003: Reference contract requires unlisted third-party secret** — The Duffel API key prerequisite is not prominently documented in the main walkthrough.
-4. **OBS-004: Environment naming inconsistency** — Quickstart uses "testnet" while product pages use "sandbox".
-
-See [docs/BUGS.md](docs/BUGS.md) for full bug reports.
-
-## DX Findings
-
-See [docs/DX_AUDIT.md](docs/DX_AUDIT.md) for the full developer experience audit.
-
-**Key findings:**
-- Documentation is not aligned with SDK 4.36.0 at two blocking API points
-- The core authenticated path works after applying the two corrections
-- Rust contract compilation is clean and deterministic
-- The walkthrough should distinguish tenant identity, agent identity, and user authorization more clearly
-
-## Use Case: Agent Attestation Registry
-
-See [docs/USE_CASE.md](docs/USE_CASE.md) for the full use case document.
-
-A custom TEE contract that lets AI agents register and verify identity attestations using only Terminal3's KV-store — no external API key needed. This demonstrates understanding of Terminal3's core value proposition: verifiable agent identity in a TEE environment.
-
-## Screenshots
-
-Screenshots are in the `screenshots/` directory:
-- `01-claim-page.png` — API key claim page with DID
-- `02-quickstart-output.png` — Quickstart terminal output
-- `03-contract-build.png` — Rust contract compilation
-- `04-registration-result.png` — Contract registration success
-
-## Reproduction
-
-1. Clone this repo
-2. Install dependencies (`cd app && npm install`)
-3. Install Rust + WASM target
-4. Get your API key from [Terminal3 claim page](https://www.terminal3.io/claim-page)
-5. `export T3N_API_KEY="<your-key>"`
-6. `npx tsx quickstart.ts` — authenticated connection + reference contract
-7. `cd contracts/z-tenant-attest && cargo build --target wasm32-wasip2 --release` — build custom contract
-8. `cd ../../app && npx tsx attest-demo.ts` — custom contract end-to-end
-
-## Repository Structure
-
-```
+```text
 terminal3-adk-bounty/
-├── README.md
-├── .env.example
-├── .gitignore
 ├── app/
-│   ├── package.json
-│   ├── quickstart.ts          ← Quickstart + reference contract registration
-│   ├── attest-demo.ts         ← Custom contract end-to-end demo
-│   ├── invoke.ts             ← Reference contract invocation
-│   └── setup-secrets-map.ts   ← KV map ACL setup
+│   ├── quickstart.ts          # Auth, usage, reference registration, reference invocation
+│   ├── invoke.ts              # Reference contract invocation only
+│   ├── setup-secrets-map.ts   # Reference secrets-map ACL provisioning
+│   └── attest-demo.ts         # Custom contract registration and register/verify/list demo
 ├── contracts/
-│   ├── z-tenant-flight/       ← Reference contract (Duffel flight booking)
-│   │   ├── src/
-│   │   ├── wit/
-│   │   └── Cargo.toml
-│   └── z-tenant-attest/       ← Custom contract (Agent Attestation Registry)
-│       ├── src/
-│       ├── wit/
-│       └── Cargo.toml
+│   ├── z-tenant-flight/       # Reference Terminal3 travel contract
+│   └── z-tenant-attest/       # Custom Agent Attestation Registry
 ├── docs/
 │   ├── QUICKSTART.md
 │   ├── WALKTHROUGH.md
@@ -233,19 +41,103 @@ terminal3-adk-bounty/
 │   ├── DX_AUDIT.md
 │   ├── USE_CASE.md
 │   └── REPORT.md
-├── logs/
-│   ├── contract_build.log
-│   ├── quickstart_sanitized.log
-│   └── ...
-└── screenshots/
+├── logs/                      # Sanitized execution, test, and build logs
+├── screenshots/               # Current credential-safe evidence PNGs
+└── scripts/                   # Evidence screenshot generator
 ```
 
-## Sources
+## Prerequisites
 
-- [Terminal3 Documentation](https://docs.terminal3.io/developers/adk/get-started/quickstart)
-- [Superteam Earn Bounty](https://superteam.fun/earn/listing/ai-id)
-- [Terminal3 Claim Page](https://www.terminal3.io/claim-page)
+| Requirement | Verified/current value |
+|---|---|
+| Node.js | v22.13.0 or later |
+| npm | 10.9.2 or later |
+| Rust | 1.97.1 via rustup in the verified run |
+| WASI target | `wasm32-wasip2` |
+| Terminal3 SDK | `@terminal3/t3n-sdk` 4.36.0 |
+| Credential | `T3N_API_KEY` from the Terminal3 claim page |
 
----
+## Installation
 
-**Author:** Victor Stanley ([@Stan-lee13](https://github.com/Stan-lee13))
+```bash
+git clone https://github.com/Stan-lee13/terminal3-adk-bounty.git
+cd terminal3-adk-bounty
+cd app
+npm install
+cd ../contracts/z-tenant-flight
+rustup target add wasm32-wasip2
+cd ../z-tenant-attest
+rustup target add wasm32-wasip2
+```
+
+Keep the API key in the current shell only:
+
+```bash
+export T3N_API_KEY="<your-key>"
+```
+
+Never commit `.env` files, API keys, or raw execution logs.
+
+## Run the verified reference workflow
+
+```bash
+cd app
+npx tsx quickstart.ts
+```
+
+The working script uses `setEnvironment("testnet")`, fetches the signed trust manifest, authenticates, verifies the DID, queries usage, registers `terminal3-dx-demo` version `0.1.0`, and attempts the reference function. Registration is idempotency-sensitive: a previously registered version must not be registered again with the same version.
+
+The reference contract requires a private `secrets` map with contract ID 648 as reader and writer. The separate `duffel_api_key` was not supplied, so the reference invocation correctly stops with a missing-secret error.
+
+## Build and test the custom contract
+
+```bash
+cd contracts/z-tenant-attest
+cargo test --all-targets
+cargo build --target wasm32-wasip2 --release
+```
+
+The current verified result is **9 tests passed** and a successful 145 KB release WASM build. The corrected WIT export is `list-attestations`, because `list` is reserved in the current WIT parser. The demo calls `register`, `verify`, and `list-attestations` through `TenantClient`.
+
+To run the custom demo after registering the custom artifact on a tenant:
+
+```bash
+cd ../../app
+npx tsx attest-demo.ts
+```
+
+The script creates a private `attestations` map with the returned custom contract ID as explicit reader and writer, then registers, verifies, and lists a test attestation. The current repository proves compilation and unit tests; it does not claim a completed live custom-contract deployment.
+
+## Screenshots and evidence
+
+The exact tracked screenshot assets are documented in [`screenshots/README.md`](screenshots/README.md):
+
+| File | Evidence |
+|---|---|
+| `00_evidence_contact_sheet.png` | Four-panel overview |
+| `01_quickstart_authenticated.png` | Authenticated Quickstart |
+| `02_contract_build.png` | Reference WASI build |
+| `03_contract_registered.png` | Contract ID 648 registration |
+| `04_invocation_blocker.png` | Reference runtime missing-secret result |
+
+The images are credential-safe evidence cards generated from sanitized logs. They are not private dashboard screenshots and do not contain the API key.
+
+## Developer-experience findings
+
+The audit confirmed that the public Quickstart omits the signed `trustAnchor` required by SDK 4.36.0, and that the setup guide uses `tenant.me()` even though the current SDK exposes `tenant.tenant.me()`. The reference travel contract also requires a third-party secret and user egress authorization that should be surfaced earlier in the walkthrough.
+
+See [`docs/BUGS.md`](docs/BUGS.md), [`docs/DX_AUDIT.md`](docs/DX_AUDIT.md), and [`docs/REPORT.md`](docs/REPORT.md) for the detailed evidence and recommendations.
+
+## Security note
+
+The API key used during the original test was exposed in chat and should be rotated or regenerated before reuse. It is not present in this repository, its screenshots, or its sanitized logs.
+
+## References
+
+[1]: https://docs.terminal3.io/developers/adk/get-started/quickstart "Terminal3 ADK Quickstart"
+[2]: https://docs.terminal3.io/developers/adk/get-started/prerequisites/set-up-dev-env "Terminal3 development environment setup"
+[3]: https://docs.terminal3.io/developers/adk/get-started/walkthrough/build-contract "Terminal3 contract build"
+[4]: https://docs.terminal3.io/developers/adk/get-started/walkthrough/register-contract "Terminal3 contract registration"
+[5]: https://docs.terminal3.io/developers/adk/tips/create-kv-maps "Terminal3 tenant KV maps"
+[6]: https://docs.terminal3.io/developers/adk/tips/seed-api-key "Terminal3 secrets map"
+[7]: https://superteam.fun/earn/listing/ai-id "Superteam bounty listing"

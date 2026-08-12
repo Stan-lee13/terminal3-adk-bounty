@@ -46,7 +46,7 @@ impl exports::z::tenant_attest::contracts::Guest for Component {
         registry::verify(&input)
     }
 
-    fn list(
+    fn list_attestations(
         req: exports::z::tenant_attest::contracts::GenericInput,
     ) -> Result<alloc::vec::Vec<u8>, alloc::string::String> {
         let input = req.input.unwrap_or_default();
