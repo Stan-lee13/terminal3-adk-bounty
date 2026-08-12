@@ -1,0 +1,46 @@
+/// z-tenant-attest WIT world — Agent Attestation Registry.
+///
+/// A minimal TEE contract that demonstrates Terminal3's KV-store capability
+/// without requiring any external HTTP API. It lets an agent:
+///   - register: store a signed attestation claim (agent DID -> capability metadata)
+///   - verify:   retrieve an attestation by agent DID
+///   - list:    scan all registered attestations
+///
+/// This contract uses ONLY:
+///   - host:tenant/tenant-context  (to build the z:<tid>:attestations map name)
+///   - host:interfaces/logging      (audit trail)
+///   - host:interfaces/kv-store     (storage)
+///
+/// No http or http-with-placeholders imports — no external API key needed.
+package z:tenant-attest@0.1.0;
+
+world tenant-attest {
+    import host:tenant/tenant-context@1.0.0;
+    import host:interfaces/logging@2.1.0;
+    import host:interfaces/kv-store@2.1.0;
+
+    export contracts;
+}
+
+interface contracts {
+    record generic-input {
+        input:        option<list<u8>>,
+        user-profile: option<list<u8>>,
+        context:      option<list<u8>>,
+    }
+
+    /// Register an agent attestation.
+    /// Input  (JSON): { agent_did: string, capability: string, issued_at: u64, signature: string }
+    /// Output (JSON): { status: "registered", key: string }
+    register: func(req: generic-input) -> result<list<u8>, string>;
+
+    /// Verify/retrieve an agent attestation by DID.
+    /// Input  (JSON): { agent_did: string }
+    /// Output (JSON): { agent_did: string, capability: string, issued_at: u64, signature: string }
+    verify: func(req: generic-input) -> result<list<u8>, string>;
+
+    /// List all registered agent attestations (up to 50).
+    /// Input  (JSON): {}
+    /// Output (JSON): { attestations: [ {...}, ... ] }
+    list: func(req: generic-input) -> result<list<u8>, string>;
+}
