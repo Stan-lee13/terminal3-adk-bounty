@@ -145,4 +145,4 @@ Evidence: `logs/attest_live_demo.log`, `screenshots/04_custom_contract_live.png`
 | Custom contract build | ✅ Completed | 145 KB WASM |
 | Custom contract deployment | ✅ Completed (LIVE) | Contract ID 650 |
 | Custom contract invocation | ✅ Completed (LIVE) | register + verify + list all succeeded |
-| DX audit | ✅ Completed | 2 bugs, 2 observations |
+| DX audit | ✅ Completed | 12 bugs, 4 severity levels |
