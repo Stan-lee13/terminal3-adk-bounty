@@ -1,0 +1,9 @@
+=== Invoke empty WASM contract (ID 651) ===
+RESULT: Failed
+Error type: RpcError
+Error message: RPC Error: Internal error [c3a6ebcf-491b-468b-9fa0-080d9e0aac72]
+
+=== Invoke invalid WASM contract (ID 652) ===
+RESULT: Failed
+Error type: RpcError
+Error message: RPC Error: Internal error [55b4825f-e248-4dbf-b1d8-8e0e149c2f00]

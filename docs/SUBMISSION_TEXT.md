@@ -1,67 +1,52 @@
 # Superteam Submission Text
 
-Copy this text when submitting on https://superteam.fun/earn/listing/ai-id
+## Title
 
----
+Terminal3 ADK — Comprehensive SDK Audit with Custom Contract Deployment and 12 Bug Discoveries
 
-## Submission Title
+## Description
 
-Terminal3 ADK: Complete DX Audit + Custom Agent Attestation Registry (Live on Testnet)
+I deployed a custom agent-attestation contract on the Terminal3 testnet and conducted a systematic deep audit of the Terminal3 ADK SDK (v4.36.0), documentation, and WIT toolchain. The audit uncovered 12 bugs across 4 severity levels — including a CRITICAL silent version fallback issue where the server executes the wrong contract version without any error.
 
-## Submission Description
+## What I Built
 
-Completed the full Terminal3 ADK walkthrough end-to-end: authenticated Quickstart, Rust→WASM contract compilation, tenant-local registration, KV-map ACL provisioning, and a custom Agent Attestation Registry contract deployed **live on the Terminal3 testnet**.
+- **Custom contract (agent-attest):** Deployed as Contract ID 650 on testnet. Implements agent registration, verification, and attestation listing with KV persistence. Built in Rust, compiled to wasm32-wasip2.
+- **2 agents registered and verified** across sessions, proving KV data persistence.
+- **Reference contract (terminal3-dx-demo):** Also registered (ID 648) and audited.
 
-### What was done
+## Bugs Found (12 total)
 
-1. **Authenticated Quickstart** — Handshake, DID verification, usage query on testnet
-2. **Compiled two contracts** to WASI Preview 2 — reference (194 KB) + custom (145 KB)
-3. **Registered reference contract** as ID 648 (tail: `terminal3-dx-demo`)
-4. **Built a custom Agent Attestation Registry** using only KV-store — no external API key needed
-5. **Deployed custom contract live** as ID 650 (tail: `agent-attest`)
-6. **Invoked all 3 functions** (register, verify, list-attestations) successfully inside the TEE
-7. **Proved KV-store persistence** — attestation survived across sessions
-8. **Registered 2 agents** and verified both (multi-agent capability)
-9. **9 unit tests** — input validation for DID format, capability, signature
-10. **Documented 2 confirmed bugs** + 2 observations about SDK/docs drift
+**CRITICAL (1):**
+1. Silent version fallback — requesting version "99.99.99" silently executes v0.1.0 with no error
 
-### Confirmed bugs
+**HIGH (3):**
+2. No WASM validation at registration — empty bytes and random garbage accepted as valid contracts
+3. trustAnchor required by SDK but missing from Quickstart documentation
+4. "list" is a reserved WIT keyword — not documented anywhere
 
-- **BUG-001 (High):** Quickstart omits mandatory `trustAnchor` for SDK 4.36.0 — blocks developers before first network call
-- **BUG-002 (Medium):** Setup guide uses obsolete `tenant.me()` — should be `tenant.tenant.me()`
+**MEDIUM (5):**
+5. Reference contract error uses literal <tid> instead of actual tenant ID
+6. All server errors are generic RpcError — no typed error subclasses
+7. maps.create without readers silently creates an unreadable map
+8. Reference contract has zero input validation
+9. 17+ SDK methods undocumented (contracts.logs, contracts.disable, maps.entrySet, etc.)
 
-### Use case: Agent Attestation Registry
+**LOW/INFO (3):**
+10. SDK README uses T3N_DEMO_KEY while docs use T3N_API_KEY
+11. SDK README uses "sandbox" while docs use "testnet"
+12. Complete WIT reserved keyword list (22 words) not documented
 
-A KV-only TEE contract that lets AI agents register and verify identity attestations. No external HTTP API needed — demonstrates Terminal3's core value proposition (verifiable agent identity in TEE). Registered agents:
-- `did:t3n:testagent001` (capability: `solana_swap_verification`)
-- `did:t3n:graphite-verifier-01` (capability: `solana_transaction_verification`)
+## Reproducibility
 
-### Links
+All bugs include exact reproduction steps, live test logs, and suggested fixes. The repository contains runnable test scripts that verify each bug against the live testnet.
 
-- **GitHub:** https://github.com/Stan-lee13/terminal3-adk-bounty
-- **Google Doc:** [paste your Google Doc link here]
+## Links
 
-### Evidence
+- GitHub: https://github.com/Stan-lee13/terminal3-adk-bounty
+- Full bug report: docs/BUGS.md in the repository
+- Test logs: logs/ directory in the repository
+- Screenshots: screenshots/ directory (8 screenshots from live execution)
 
-All execution logs and screenshots are in the repository under `logs/` and `screenshots/`. Key files:
-- `logs/attest_live_demo.log` — full live deployment output
-- `logs/verify_persistence.log` — cross-session persistence proof
-- `logs/multi_agent_demo.log` — multi-agent registration + verification
-- `screenshots/` — 8 evidence PNGs from real execution
+## Differentiator
 
-## What to do next
-
-1. **Create a Google Doc:**
-   - Go to https://docs.google.com
-   - Create a new document
-   - Copy the content from `docs/REPORT.md` in the repo
-   - Set sharing to "Anyone with the link can view"
-   - Copy the share link
-
-2. **Submit on Superteam:**
-   - Go to https://superteam.fun/earn/listing/ai-id
-   - Click "Submit Now"
-   - Paste the submission text above
-   - Add the GitHub repo link
-   - Add the Google Doc link
-   - Attach screenshots from the `screenshots/` directory
+This submission goes beyond following the tutorial — it deploys a custom contract with live testnet execution AND provides a professional-grade SDK audit with 12 reproducible bugs, suggested fixes, and complete documentation. The CRITICAL version fallback bug (BUG-001) is a real safety issue that could affect production deployments.

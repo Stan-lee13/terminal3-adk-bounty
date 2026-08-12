@@ -1,0 +1,22 @@
+Connected as: did:t3n:f2458610f88263ea28859cd1f2dee3405514bbf9
+
+=== Test 1: Execute with version '99.99.99' ===
+RESULT: SUCCEEDED with version 99.99.99 (BUG!)
+Response: {"agent_did":"did:t3n:testagent001","capability":"solana_swap_verification","issued_at":1786569802386,"signature":"0xdeadbeef_test_signature"}
+INTERPRETATION: SDK silently fell back to registered v0.1.0
+
+=== Test 2: Execute with version '' (empty string) ===
+RESULT: Failed
+Error: RPC Error: Invalid action request: Invalid semver format:  at line 1 column 92 [88a059c9-3cc2-4cc3-b8c1-6511f0dcfd7c]
+
+=== Test 3: Execute with undefined version ===
+RESULT: Failed
+Error: RPC Error: Invalid action request: missing field `script_version` at line 1 column 143 [2cdab198-0628-4d6c-a085-c5ca88164efa]
+
+=== Test 4: Execute with version '0.0.1' (lower than 0.1.0) ===
+RESULT: SUCCEEDED with version 0.0.1 (BUG!)
+Response: {"agent_did":"did:t3n:testagent001","capability":"solana_swap_verification","issued_at":1786569802386,"signature":"0xdeadbeef_test_signature"}
+
+=== Test 5: Execute with version '0.1.0' (correct) ===
+RESULT: SUCCEEDED with correct version
+Response: {"agent_did":"did:t3n:testagent001","capability":"solana_swap_verification","issued_at":1786569802386,"signature":"0xdeadbeef_test_signature"}

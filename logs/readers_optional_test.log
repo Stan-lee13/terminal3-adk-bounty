@@ -1,0 +1,9 @@
+=== Test: Create map WITHOUT readers field ===
+[t3n-sdk] maps.create("test-no-readers"): no `readers` specified — the map will be created with a deny-all read policy, so no one (including you) can read it. Pass `readers` explicitly (e.g. "all" or { only: [...] }), or { only: [] } to deliberately make it write-only.
+Map created WITHOUT readers field
+Response: {"map_name":"z:f2458610f88263ea28859cd1f2dee3405514bbf9:test-no-readers"}
+INTERPRETATION: Map created with deny-all readers (footgun per SDK JSDoc)
+
+=== Test: Create map with readers: { only: [] } (empty) ===
+Map created with empty readers
+Response: {"map_name":"z:f2458610f88263ea28859cd1f2dee3405514bbf9:test-empty-readers"}

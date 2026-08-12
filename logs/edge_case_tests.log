@@ -1,0 +1,58 @@
+============================================================
+EDGE CASE TEST 1: Duplicate contract registration (same version)
+============================================================
+RESULT: Duplicate registration failed as expected
+Error type: RpcError
+Error message: RPC Error: contract version invalid: version 0.1.0 is not higher than current version 0.1.0 [a6d81fd0-79c0-449f-bc0b-c258691f7445]
+Error code: RPC_ERROR
+ERROR QUALITY: Unhelpful — no mention of duplicate/exists
+
+============================================================
+EDGE CASE TEST 2: Execute non-existent contract
+============================================================
+RESULT: Execute non-existent contract failed as expected
+Error type: RpcError
+Error message: RPC Error: tenant contract z:f2458610f88263ea28859cd1f2dee3405514bbf9:nonexistent-contract-xyz not registered [ee03eb34-53db-4da1-8c6e-b53d456fb8e4]
+
+============================================================
+EDGE CASE TEST 3: Execute non-existent function
+============================================================
+RESULT: Execute non-existent function failed as expected
+Error type: RpcError
+Error message: RPC Error: contract interface error: Function not found: Function 'nonexistent-function-xyz' not found in contract (looked up under 'z:tenant-attest/contracts@0.1.0.nonexistent-function-xyz' and walked every interface export) [8523a335-de9c-4594-b4d0-6f4bd0e47a14]
+
+============================================================
+EDGE CASE TEST 4: Execute with wrong version
+============================================================
+RESULT: Execute wrong version SUCCEEDED (bug?)
+Response: {"status":"registered","key":"did:t3n:test"}
+
+============================================================
+EDGE CASE TEST 5: Register with empty WASM bytes
+============================================================
+RESULT: Empty WASM registration SUCCEEDED (bug!)
+Contract ID: 651
+
+============================================================
+EDGE CASE TEST 6: Register with invalid WASM (random bytes)
+============================================================
+RESULT: Invalid WASM registration SUCCEEDED (bug!)
+Contract ID: 652
+
+============================================================
+EDGE CASE TEST 7: maps.create with duplicate name
+============================================================
+RESULT: Duplicate map creation failed
+Error type: RpcError
+Error message: RPC Error: map already exists [413e49b4-9d41-45ce-9128-872a326a706e]
+
+============================================================
+EDGE CASE TEST 8: Execute with null input
+============================================================
+RESULT: Execute with null input failed
+Error type: RpcError
+Error message: RPC Error: contract error: register: missing input [3c51514e-f9c1-4ed2-945e-74a3fd81e064]
+
+============================================================
+ALL EDGE CASE TESTS COMPLETE
+============================================================
